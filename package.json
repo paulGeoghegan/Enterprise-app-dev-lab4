@@ -1,0 +1,16 @@
+{
+  "name": "enterprise-app-dev-lab4",
+  "version": "1.0.0",
+  "description": "This contains the code for lab4",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Paul Geoghegan",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongoose": "^7.1.0"
+  }
+}
