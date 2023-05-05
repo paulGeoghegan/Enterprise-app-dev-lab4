@@ -4,7 +4,7 @@ $.get("/getProduct").done(function(product) {
 	let finishTime = new Date().getTime()-startTime;
 	let div = $("#productInfo");
 	let imagesDiv = $("<div class='imagesDiv'>");
-	let imagesNavDiv = $("<div class='imagesNavDiv'>");
+	let imagesNavDiv = $("<div class='navDiv'>");
 	div.empty();
 
 	//Adds go back button
@@ -28,14 +28,20 @@ $.get("/getProduct").done(function(product) {
 		<span class="navButtons" onclick="changeImageUsingArrows(1)">&#8594;</span>
 	`);
 
-
-
 	imagesDiv.append(imagesNavDiv);
 	div.append(imagesDiv);
 	div.append(`
 		<div id="infoDiv">
 			<h1>`+product.title+`</h1>
-			<p>`+product.description+`</p>
+			<p>
+				`+product.description+`</br>
+				RRP: <span class="originalPrice">€`+product.price+`</span> - `+product.discountPercentage+`%</br>
+				<span class="saleSpan">Sale Price €`+((product.price/100)*(100-product.discountPercentage)).toFixed(2)+`</span></br>
+				Rated: `+product.rating+`/5</br>
+				Stock: `+product.stock+`</br>
+				Brand: `+product.brand+`</br>
+				Category: `+product.category+`</br>
+			</p>
 		</div>
 	`);
 	div.append(`<p class="timeToLoad">It took `+finishTime+`ms to load this product</p>`);

@@ -4,8 +4,8 @@ table{
 	text-align: center;
 }
 
+
 .thumbnailColumn{
-	display: block;
 	height: 15vh;
 	width: 15vw;
 }
@@ -17,4 +17,33 @@ table{
 .saleSpan{
 	font-weight: bold;
 	color: red;
+}
+
+.navDiv{
+	display: block;
+	width: 100%;
+	margin: auto;
+	text-align: center;
+}
+
+.pageNumber{
+	cursor: pointer;
+	height: 20px;
+	width: 20px;
+	background-color: lightgray;
+	border-radius: 50%;
+	display: inline-block;
+	margin: 3px;
+	border-radius: 50%;
+}
+
+.navButtons{
+	cursor: pointer;
+}
+
+.timeToLoad{
+	display: block;
+	width: 100%;
+	bottom: 0;
+	text-align: center;
 }

@@ -1,26 +1,35 @@
 
-let startTime = new Date().getTime();
-
-$.get("/getProducts").done(async function(productsList) {
-	let finishTime = new Date().getTime()-startTime;
 	let productsTable = $("<table>");
 	let productsTableBody = $("<tbody>");
 	let productsDiv = $("#productsListDiv");
+	let productsPagesDiv = $("<div class='navDiv'>");
+let fullProductsList = []
+let currentProductsList = [];
+
+let startTime = new Date().getTime();
+
+$.get("/getProducts").done(function(productsList) {generate(productsList)});
+
+//This will generate the page with default options
+function generate(productsList) {
+	let finishTime = new Date().getTime()-startTime;
+	fullProductsList = productsList;
+	currentProductsList = productsList;
+
 	productsDiv.empty();
-	productsDiv.append(`<p>It took `+finishTime+`ms to load our products </p>`);
 	//Adds heading to table
 	productsTable.append(`<thead><th>Image</th><th>Name</th><th>Price</th><th>Rating</th><th>Stock Level</th><th>Brand</th><th>Category</th></thead>`);
+
+	//Adds page numbers
+	createPages(productsList);
+
 	productsTable.append(productsTableBody);
-
-
-	//Loops through products list
-	for(let item of productsList) {
-		productsTableBody.append(`<tr><td class="thumbnailColumn"><img src="`+item.thumbnail+`" alt="`+item.title+` thumbnail" width="100%" width="100%"></td><td><a tabindex="0" onclick="getProduct(`+item.id+`)">`+item.title+`</a></td><td>RRP: <span class="originalPrice">€`+item.price+`</span> - `+item.discountPercentage+`%</br><span class="saleSpan">Sale Price: €`+((item.price/100)*(100-item.discountPercentage)).toFixed(2)+`</span></td><td>`+item.rating+`</td><td>`+item.stock+`</td><td>`+item.brand+`</td><td>`+item.category+`</td></tr>`)
-	}
 
 	//Adds table to page
 	productsDiv.append(productsTable);
-});
+	productsDiv.append(productsPagesDiv);
+	productsDiv.append(`<p class="timeToLoad">It took `+finishTime+`ms to load our products </p>`);
+}
 
 //This function will get a product
 function getProduct(productId) {
@@ -30,4 +39,48 @@ function getProduct(productId) {
 	$.post("/",body).done(function() {
 		window.location.replace("/product");
 	});
+}
+
+//Adds page numbers and goes to first page
+function createPages(productsList) {
+	productsPagesDiv.empty();
+//Checks how many pages to create
+	if(currentProductsList.length%10==0) {numberOfPages=currentProductsList.length/10}
+	else{numberOfPages=(currentProductsList.length/10)+1+1}
+
+	//Adds previous page arrow
+	productsPagesDiv.append(`
+		<span class="navButtons" onclick="changePageUsingArrows(-1)">&#8592;</span>
+	`);
+
+	//Loops to create page numbers
+	for(let i = 1;i<=numberOfPages;i++) {
+		//Adds page Numbers
+		productsPagesDiv.append(`<span id="pageNumber`+i+`" class="pageNumber" onclick="changeCurrentPage(`+i+`)">`+i+`</span>`);
+	}
+
+	//Adds next page navigation arrow
+	productsPagesDiv.append(`
+		<span class="navButtons" onclick="changePageUsingArrows(1)">&#8594;</span>
+	`);
+
+	//Goes to the first page
+	changeCurrentPage(1);
+}
+
+//Changes the products to reflect the current page
+function changeCurrentPage(pageNumber) {
+	productsTableBody.empty();
+
+	//Adds products from current page to page
+	for(let i = (pageNumber*10)-10;i<pageNumber*10;i++) {
+		productsTableBody.append(`<tr><td class="thumbnailColumn"><img src="`+currentProductsList[i].thumbnail+`" alt="`+currentProductsList[i].title+` thumbnail" width="100%" ></td><td><a tabindex="0" onclick="getProduct(`+currentProductsList[i].id+`)">`+currentProductsList[i].title+`</a></td><td>RRP: <span class="originalPrice">€`+currentProductsList[i].price+`</span> - `+currentProductsList[i].discountPercentage+`%</br><span class="saleSpan">Sale Price: €`+((currentProductsList[i].price/100)*(100-currentProductsList[i].discountPercentage)).toFixed(2)+`</span></td><td>`+currentProductsList[i].rating+`</td><td>`+currentProductsList[i].stock+`</td><td>`+currentProductsList[i].brand+`</td><td>`+currentProductsList[i].category+`</td></tr>`)
+	}
+
+	//Resets page number styles
+	$(".pageNumber").css({"background-color":"lightgray","color":"black"});
+
+	//Changes highlighted number
+	$("#pageNumber"+pageNumber).css({"background-color":"black","color":"lightgray"});
+
 }

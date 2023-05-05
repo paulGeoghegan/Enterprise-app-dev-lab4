@@ -11,7 +11,7 @@
 	margin-top: 1%;
 }
 
-.imagesNavDiv{
+.navDiv{
 	display: block;
 	width: 100%;
 	margin: auto;
@@ -46,6 +46,15 @@ img{
 #infoDiv{
 	width: 100%;
 	text-align: center;
+}
+
+.originalPrice{
+	text-decoration: line-through;
+}
+
+.saleSpan{
+	font-weight: bold;
+	color: red;
 }
 
 .timeToLoad{
