@@ -1,0 +1,57 @@
+
+#productInfo{
+	display: flex;
+	flex-direction: column;
+}
+
+.imagesDiv{
+	display: block;
+	height: 30%;
+	width: 100%;
+	margin-top: 1%;
+}
+
+.imagesNavDiv{
+	display: block;
+	width: 100%;
+	margin: auto;
+	text-align: center;
+}
+
+.img{
+	display: none;
+	width: 100%;
+}
+
+img{
+	display: block;
+	margin: auto;
+}
+
+.navButtons{
+	cursor: pointer;
+}
+
+.navDot{
+	cursor: pointer;
+	height: 20px;
+	width: 20px;
+	background-color: lightgray;
+	border-radius: 50%;
+	display: inline-block;
+	font-size: 0;
+	margin: 3px;
+}
+
+#infoDiv{
+	width: 100%;
+	text-align: center;
+}
+
+.timeToLoad{
+	display: block;
+	position: fixed;
+	width: 100%;
+	bottom: 0;
+	text-align: center;
+}

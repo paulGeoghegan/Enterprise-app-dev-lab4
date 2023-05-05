@@ -49,6 +49,6 @@ async function getAllItems() {
 }
 
 async function getItem(productId) {
-	const product = await onlineShop.find({id:productId},"id title description price discountPercentage rating stock brand category images").exec();
-	console.log(product);
+	const product = await onlineShop.findOne({id:productId},"id title description price discountPercentage rating stock brand category images").exec();
+	return product;
 }
