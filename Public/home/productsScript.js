@@ -5,6 +5,7 @@
 	let productsPagesDiv = $("<div class='navDiv'>");
 let fullProductsList = []
 let currentProductsList = [];
+let currentPage;
 
 let startTime = new Date().getTime();
 $.get("/getProducts").done(function(productsList) {generate(productsList)});
@@ -65,8 +66,16 @@ function createPages(productsList) {
 setTimeout(function(){changeCurrentPage(1)},100);
 }
 
+//Function for navigating with arrows
+function changePageUsingArrows(num) {
+	changeCurrentPage(currentPage+num);
+}
+
 //Changes the products to reflect the current page
 function changeCurrentPage(pageNumber) {
+	let numberOfPages = $(".pageNumber").length;
+	if(pageNumber > numberOfPages) {pageNumber=1}
+	else if(pageNumber < 1) {pageNumber=numberOfPages}
 	productsTableBody.empty();
 	//Adds products from current page to page
 	for(let i = (pageNumber*10)-10;i<pageNumber*10;i++) {
@@ -82,5 +91,7 @@ function changeCurrentPage(pageNumber) {
 	$("#pageNumber"+pageNumber).css({"background-color":"black","color":"lightgray"});
 	//This lets screen readers know what page is selected
 $("#pageNumber"+pageNumber).attr("aria-current",true);
+	//Sets page number
+	currentPage = pageNumber;
 
 }
