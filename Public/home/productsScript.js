@@ -28,7 +28,7 @@ function generate(productsList) {
 
 	productsTable.append(productsTableBody);
 
-	//Adds table to page
+	//Adds divs to page
 	productsDiv.append(productsTable);
 	productsDiv.append(productsPagesDiv);
 	productsDiv.append(`<p class="timeToLoad">It took `+finishTime+`ms to load our products </p>`);
@@ -153,7 +153,8 @@ $.get("/getProducts").done(function(productsList) {
 function generateForm(product={id:0,title:"",description:"",price:0,discountPercentage:0,rating:1,stock:0,brand:"",category:"",thumbnail:"https://",images:["https://","https://"]}) {
 	$(".formModalDiv").empty();
 	$(".formModalDiv").append(`
-		<form id="productForm" class="productForm">
+		<form class="productForm">
+			<span class="closeForm" tabindex="0" onclick="closeForm()">&times;</span>
 			<input id="productId" type="hidden" value="`+product.id+`">
 			<label for="productTitle">Name:</label>
 			<input id="productTitle" type="text" value="`+product.title+`" required></br>
@@ -222,8 +223,8 @@ function saveProduct() {
 	//Checks if form is valid
 	if(!$(".productForm").valid()) {
 		return;
-
 	}
+
 	let product={
 		id:$("#productId").val(),
 		title:$("#productTitle").val(),
@@ -237,7 +238,6 @@ function saveProduct() {
 		thumbnail:$("#productThumbnail").val(),
 		images:$("#productImages").val()
 	}
-	console.log(product)
 	//Sends put request
 	$.ajax({
 		url:"/saveProduct",
@@ -247,10 +247,93 @@ function saveProduct() {
 		startTime = new Date().getTime();
 		$.get("/getProducts").done(function(productsList) {
 			fullProductsList = productsList;
+			alert("Your product was saved!");
+			closeForm();
 			generate(productsList)
 		});
 	}).fail(function(ex) {
 		console.error(ex);
 		alert("Sorry something went wrong while saving your product");
 	})
+}
+
+
+//This will add a form to the page
+function addFilterForm() {
+	$(".formModalDiv").empty();
+	$(".formModalDiv").append(`
+		<form class="productForm">
+			<span class="closeForm" tabindex="0" onclick="closeForm()">&times;</span>
+			<label for="brandDropDown">Brand:</label>
+			<select id="brandDropDown"></select></br>
+			<label for="categoryDropDown">Category:</label>
+			<select id="categoryDropDown"></select></br></br>
+			<input type="button" value="Search" onclick="filterProducts()">
+			<input type="reset">
+		</form>
+	`);
+	//Adds dropdown options
+	addOptions();
+	//Makes div visible
+	$(".formModalDiv").css({"display":"flex"});
+	//Moves users focus to form
+	$("#brandDropDown").focus();
+}
+
+//Adds the option elements to dropdowns for filtering
+function addOptions() {
+	//Gets filter options
+	let brandOptionsSet = new Set(fullProductsList.map(product => product.brand));
+	let brandOptions = [...brandOptionsSet];
+	brandOptions.sort((a,b) => {
+		return a.localeCompare(b,undefined,{sensitivity:"base"});
+	});
+	//Makes sure the all option is always at the start
+	brandOptions.unshift("All");
+	let categoryOptionsSet = new Set(fullProductsList.map(product => product.category));
+	let categoryOptions = [...categoryOptionsSet];
+	categoryOptions.sort((a,b) => {
+		return a.localeCompare(b,undefined,{sensitivity:"base"});
+	});
+	categoryOptions.unshift("All");
+	//Adds brand options
+	for(let brand of brandOptions) {
+		$("#brandDropDown").append(new Option(brand));
+	}
+	//Adds category options
+	for(let category of categoryOptions) {
+		$("#categoryDropDown").append(new Option(category));
+	}
+}
+
+//Defines function for when form is submitted
+function filterProducts() {
+	startTime = new Date().getTime();
+	let brandOption = $("#brandDropDown").val()
+	let categoryOption = $("#categoryDropDown").val();
+	let productsList = [];
+	if(brandOption=="All" && categoryOption=="All") {
+		//Gets all products
+		productsList = fullProductsList;
+	}
+	if(brandOption!="All") {
+		productsList = fullProductsList.filter(product => product.brand == brandOption);
+	}
+	else {
+		//This sets the array to contain every element so the next check can work
+		productsList = fullProductsList;
+	}
+	if(categoryOption!="All") {
+		productsList = productsList.filter(product => product.category == categoryOption);
+	}
+	//Closes form
+	closeForm();
+	//Filters
+	generate(productsList);
+
+}
+
+//Hides the form and modal
+function closeForm() {
+	$(".formModalDiv").css({"display":"none"});
 }

@@ -72,3 +72,10 @@ table{
 	overflow-y: auto;
 	min-height: 0;
 }
+
+.closeForm{
+	cursor: pointer;
+		float: right;
+	font-size: large;
+	font-weight: bold;
+}
