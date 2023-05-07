@@ -26,6 +26,15 @@ app.post("/",function(req,res) {
 	res.status(200).send("Success");
 });
 
+//Deletes a product
+app.delete("/deleteProduct",async function(req,res) {
+	db.deleteProduct(req.body.productId).catch(function(ex) {
+		console.error(ex);
+		res.status(500).send(ex);
+	});
+	res.status(200).send("Success");
+});
+
 //Gets one product
 app.get("/getProduct",async function(req,res) {
 	console.log("id:"+req.session.productId);
@@ -45,4 +54,31 @@ app.get("/getProducts",async function(req,res) {
 
 app.get("/product",function(req,res) {
 	res.sendFile(__dirname+"/Public/product/product.html");
+});
+
+app.get("/restoreProducts",async function(req,res) {
+	await db.restoreProducts().catch(function(ex) {
+		console.error(ex);
+		res.status(500).send(ex);
+	});
+	res.status(200).send("success");
+});
+
+//Saves a product
+app.put("/saveProduct",async function(req,res) {
+	let product = req.body;
+	//This checks if the product is being created or updated
+	if(product.id == 0) {
+		await db.newItem(product).catch(function(ex) {
+			console.error(ex);
+			res.status(500).send(ex)
+		});
+	}
+	else {
+		await db.updateItem(product).catch(function(ex) {
+			console.error(ex);
+			res.status(500).send(ex);
+		});
+	}
+	res.status(200).send("success");
 });

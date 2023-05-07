@@ -8,15 +8,18 @@ let currentProductsList = [];
 let currentPage;
 
 let startTime = new Date().getTime();
-$.get("/getProducts").done(function(productsList) {generate(productsList)});
+$.get("/getProducts").done(function(productsList) {
+	fullProductsList = productsList;
+	generate(productsList)
+});
 
 //This will generate the page with default options
 function generate(productsList) {
 	let finishTime = new Date().getTime()-startTime;
-	fullProductsList = productsList;
 	currentProductsList = productsList;
 
 	productsDiv.empty();
+	productsTable.empty();
 	//Adds heading to table
 	productsTable.append(`<thead><th>Image</th><th>Name</th><th>Price</th><th>Rating</th><th>Stock Level</th><th>Brand</th><th>Category</th><th>Actions</th></thead>`);
 
@@ -46,7 +49,7 @@ function createPages(productsList) {
 	productsPagesDiv.empty();
 //Checks how many pages to create
 	if(currentProductsList.length%10==0) {numberOfPages=currentProductsList.length/10}
-	else{numberOfPages=(currentProductsList.length/10)+1+1}
+	else{numberOfPages=(currentProductsList.length/10)+1}
 
 	//Adds previous page arrow
 	productsPagesDiv.append(`<span class="navButtons" tabindex="0" onclick="changePageUsingArrows(-1)">&#8592;</span>`);
@@ -73,13 +76,17 @@ function changePageUsingArrows(num) {
 
 //Changes the products to reflect the current page
 function changeCurrentPage(pageNumber) {
+	let currentLimit;
 	let numberOfPages = $(".pageNumber").length;
 	if(pageNumber > numberOfPages) {pageNumber=1}
 	else if(pageNumber < 1) {pageNumber=numberOfPages}
 	productsTableBody.empty();
+	//Checks how many products should be on the current page
+	if(pageNumber == numberOfPages) {currentLimit=((pageNumber-1)*10)+(currentProductsList.length%10)}
+	else{currentLimit=(pageNumber*10)}
 	//Adds products from current page to page
-	for(let i = (pageNumber*10)-10;i<pageNumber*10;i++) {
-		productsTableBody.append(`<tr><td class="thumbnailColumn"><img src="`+currentProductsList[i].thumbnail+`" alt="`+currentProductsList[i].title+` thumbnail" width="100%" ></td><td><a tabindex="0" onclick="getProduct(`+currentProductsList[i].id+`)">`+currentProductsList[i].title+`</a></td><td>RRP: <span class="originalPrice">€`+currentProductsList[i].price+`</span> - `+currentProductsList[i].discountPercentage+`%</br><span class="saleSpan">Sale Price: €`+((currentProductsList[i].price/100)*(100-currentProductsList[i].discountPercentage)).toFixed(2)+`</span></td><td>`+currentProductsList[i].rating+`</td><td>`+currentProductsList[i].stock+`</td><td>`+currentProductsList[i].brand+`</td><td>`+currentProductsList[i].category+`</td><td><button class="productActions" onclick="updateProduct(`+currentProductsList[i].id+`)">Update `+currentProductsList[i].title+`</button></br><button class="productActions" onclick="deleteProduct(`+currentProductsList[i].id+`)">Delete `+currentProductsList[i].title+`</button></td></tr>`)
+	for(let i = (pageNumber*10)-10;i<currentLimit;i++) {
+		productsTableBody.append(`<tr><td class="thumbnailColumn"><img src="`+currentProductsList[i].thumbnail+`" alt="`+currentProductsList[i].title+` thumbnail" width="100%" ></td><td><a tabindex="0" onclick="getProduct(`+currentProductsList[i].id+`)">`+currentProductsList[i].title+`</a></td><td>RRP: <span class="originalPrice">€`+currentProductsList[i].price+`</span> - `+currentProductsList[i].discountPercentage+`%</br><span class="saleSpan">Sale Price: €`+((currentProductsList[i].price/100)*(100-currentProductsList[i].discountPercentage)).toFixed(2)+`</span></td><td>`+currentProductsList[i].rating+`</td><td>`+currentProductsList[i].stock+`</td><td>`+currentProductsList[i].brand+`</td><td>`+currentProductsList[i].category+`</td><td><button class="productActions" onclick="updateProduct(`+i+`)">Update `+currentProductsList[i].title+`</button></br><button class="productActions" onclick="deleteProduct(`+currentProductsList[i].id+`)">Delete `+currentProductsList[i].title+`</button></td></tr>`)
 	}
 
 	//Resets page number styles
@@ -90,8 +97,160 @@ function changeCurrentPage(pageNumber) {
 	//Changes highlighted number
 	$("#pageNumber"+pageNumber).css({"background-color":"black","color":"lightgray"});
 	//This lets screen readers know what page is selected
-$("#pageNumber"+pageNumber).attr("aria-current",true);
+	$("#pageNumber"+pageNumber).attr("aria-current",true);
 	//Sets page number
 	currentPage = pageNumber;
 
+}
+
+//Restores all products to their default values
+function restoreProducts() {
+	$.get("/restoreProducts").done(function() {
+		startTime = new Date().getTime();
+		$.get("/getProducts").done(function(productsList) {
+			fullProductsList = productsList;
+			generate(productsList)
+		}).fail(function(ex) {
+			console.error(ex);
+			alert("Sorry we couldn't get our products");
+		})
+	}).fail(function(ex) {
+		console.error(ex);
+		alert("Sorry something went wrong trying to reset the products list")
+	});
+}
+
+
+function updateProduct(id) {
+	generateForm(currentProductsList[id]);
+}
+
+function deleteProduct(id) {
+	let body={
+		productId:id
+	};
+	$.ajax({
+		url:"/deleteProduct",
+		type:"DELETE",
+		data:body
+	}).done(function() {
+		let url = $(location).attr("href");
+		if(url.split("/")[-1] != "product") {
+$.get("/getProducts").done(function(productsList) {
+			fullProductsList = productsList;
+			generate(productsList)
+		});
+	}
+		else {
+			$.get("/");
+		}
+	}).fail(function(ex) {
+		console.log("failed");
+	});
+}
+
+//This will add a form to the page
+function generateForm(product={id:0,title:"",description:"",price:0,discountPercentage:0,rating:1,stock:0,brand:"",category:"",thumbnail:"https://",images:["https://","https://"]}) {
+	$(".formModalDiv").empty();
+	$(".formModalDiv").append(`
+		<form id="productForm" class="productForm">
+			<input id="productId" type="hidden" value="`+product.id+`">
+			<label for="productTitle">Name:</label>
+			<input id="productTitle" type="text" value="`+product.title+`" required></br>
+			<label for="productDescription">Description:</label>
+			<input id="productDescription" type="text" value="`+product.description+`" required></br>
+			<label for="productPrice">Price: €</label>
+			<input id="productPrice" type="number" value="`+product.price+`" min="0" step="0.01" required></br>
+			<label for="productDiscountPercentage">Discount:</label>
+			<input id="productDiscountPercentage" type="number" value="`+product.discountPercentage+`" min="0" max="100" step="0.01">%</br>
+			<label for="productRating">Rating:</label>
+			<input id="productRating" type="number" value="`+product.rating+`" min="1" max="5" step="0.01" required>/5</br>
+			<label for="productStock">Stock:</label>
+			<input id="productStock" type="number" value="`+product.stock+`" min="0" required></br>
+			<label for="productBrand">Brand:</label>
+			<input id="productBrand" type="text" value="`+product.brand+`" required></br>
+			<label for="productCategory">Category:</label>
+			<input id="productCategory" type="text" value="`+product.category+`"></br>
+			<label for="productThumbnail">Thumbnail:</label>
+			<input id="productThumbnail" type="url" value="`+product.thumbnail+`" required></br>
+			<label for="productImages">Images:</label>
+			<input id="productImages" type="text" value="`+product.images.join()+`" required></br></br>
+			<input type="button" value="Save" onclick="saveProduct()">
+			<input type="reset">
+		</form>
+	`);
+	//Makes div visible
+	$(".formModalDiv").css({"display":"flex"});
+	//Moves users focus to form
+	$("#productTitle").focus();
+	//Sets validation rules
+	$(".productForm").validate({
+		rules:{
+			productTitle:"required",
+			productDescription:"required",
+			productPrice:{
+				required:true,
+				min:0,
+				step:0.01,
+			},
+			productDiscountPercentage:{
+				min:0,
+				max:100,
+				step:0.01,
+			},
+			productRating:{
+				required:true,
+				min:1,
+				max:5,
+			},
+			productStock:{
+				required:true,
+				min:0,
+			},
+			productBrand:"required",
+			productThumbnail:{
+				required:true,
+				url:true,
+			},
+			productImages:"required",
+		}
+});
+}
+
+	//Defines function for when form is submitted
+function saveProduct() {
+	//Checks if form is valid
+	if(!$(".productForm").valid()) {
+		return;
+
+	}
+	let product={
+		id:$("#productId").val(),
+		title:$("#productTitle").val(),
+		description:$("#productDescription").val(),
+		price:$("#productPrice").val(),
+		discountPercentage:$("#productDiscountPercentage").val(),
+		rating:$("#productRating").val(),
+		stock:$("#productStock").val(),
+		brand:$("#productBrand").val(),
+		category:$("#productCategory").val(),
+		thumbnail:$("#productThumbnail").val(),
+		images:$("#productImages").val()
+	}
+	console.log(product)
+	//Sends put request
+	$.ajax({
+		url:"/saveProduct",
+		type:"PUT",
+		data:product
+	}).done(function() {
+		startTime = new Date().getTime();
+		$.get("/getProducts").done(function(productsList) {
+			fullProductsList = productsList;
+			generate(productsList)
+		});
+	}).fail(function(ex) {
+		console.error(ex);
+		alert("Sorry something went wrong while saving your product");
+	})
 }

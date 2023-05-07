@@ -28,10 +28,38 @@ const onlineShop = mongoose.model("onlineShop",onlineShopSchema);
 
 //exports functions
 module.exports={
+	deleteProduct:deleteProduct,
 	getAllItems:getAllItems,
 	getItem:getItem,
-	restoreProducts:restoreProducts
+	newItem:newItem,
+	restoreProducts:restoreProducts,
+	updateItem:updateItem
 };
+
+//Deletes a product
+async function deleteProduct(productId) {
+	await onlineShop.findOneAndDelete({id:productId});
+}
+
+//Gets all of the products from the db
+async function getAllItems() {
+	const products = await onlineShop.find({},"id title description price discountPercentage rating stock brand category thumbnail images").lean();
+	return products;
+}
+
+//Gets a single product
+async function getItem(productId) {
+	const product = await onlineShop.findOne({id:productId},"id title description price discountPercentage rating stock brand category images").lean();
+	return product;
+}
+
+//Adds a new product
+async function newItem(product) {
+	let newId = await onlineShop.findOne({},"id").sort({id:"-1"}).exec();
+	product.id = newId.id+1;
+	//Saves new item
+	await onlineShop.create(product);
+}
 
 //This will create the documents
 async function restoreProducts() {
@@ -43,12 +71,7 @@ async function restoreProducts() {
 	);
 }
 
-async function getAllItems() {
-	const products = await onlineShop.find({},"id title price discountPercentage rating stock brand category thumbnail").lean();
-	return products;
-}
-
-async function getItem(productId) {
-	const product = await onlineShop.findOne({id:productId},"id title description price discountPercentage rating stock brand category images").lean();
-	return product;
+//Updates an item
+async function updateItem(product) {
+	await onlineShop.findOneAndUpdate({id:product.id},product);
 }
